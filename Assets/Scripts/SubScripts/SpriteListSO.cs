@@ -1,24 +1,26 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu()]
-public class SpriteListSO : ScriptableObject
+namespace Mentum.Utility
 {
-    public List<Sprite> sprites = new List<Sprite>();
-
-    public Sprite this[int n]
+    [CreateAssetMenu()]
+    public class SpriteListSO : ScriptableObject
     {
-        get
+        public List<Sprite> sprites = new();
+
+        public Sprite this[int n]
         {
-            try
+            get
             {
-                return sprites[n];
-            }
-            catch
-            {
-                Debug.Log(n);
-                return null;
+                try
+                {
+                    return sprites[n];
+                }
+                catch
+                {
+                    Debug.Log(n);
+                    return null;
+                }
             }
         }
     }

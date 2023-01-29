@@ -1,39 +1,42 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-[CreateAssetMenu(), System.Serializable]
-public class GameSetupSO : SerializedScriptableObject
+namespace Mentum.HexMatch
 {
-    public int width = 6; // ÁÂÇ¥°è Ä­¼ö
-    public int height = 6; // ÁÂÇ¥°è Ä­¼ö
-    public Vector2Int generationPoint = new Vector2Int(5, 5); // »ı»ê ÁÂÇ¥
-
-    [HideInInspector]
-    public ArrayLayout arrayLayout; // ½ÇÁ¦ ºôµå½Ã ³Ñ¾î°¡´Â µ¥ÀÌÅÍ
-    public bool[,] boardMatrix = new bool[6, 6]; // ¿¡µğÅÍ ¼³Á¤¿ë µ¥ÀÌÅÍ // x°¡·Î¿­(¿­) y¼¼·Î¿­(Çà)
-
-    /// <summary>
-    /// À¯´ÏÆ¼¿¡¼­ ´ÙÂ÷¿ø¹è¿­ÀÌ Serialize°¡ ¾ÈµÇ¼­ boardMatrix => arrayLayout ·Î º¯È¯
-    /// </summary>
-    private void OnValidate()
+    [CreateAssetMenu(), System.Serializable]
+    public class GameSetupSO : SerializedScriptableObject
     {
-        SetMatrixSize();
-    }
+        public int width = 6; // ì¢Œí‘œê³„ ì¹¸ìˆ˜
+        public int height = 6; // ì¢Œí‘œê³„ ì¹¸ìˆ˜
+        public Vector2Int generationPoint = new(5, 5); // ìƒì‚° ì¢Œí‘œ
 
-    public void SetMatrixSize()
-    {
-        bool[,] temp = (bool[,])boardMatrix.Clone();
-        boardMatrix = new bool[width, height];
+        [HideInInspector]
+        public ArrayLayout arrayLayout; // ì‹¤ì œ ë¹Œë“œì‹œ ë„˜ì–´ê°€ëŠ” ë°ì´í„°
+        public bool[,] boardMatrix = new bool[6, 6]; // ì—ë””í„° ì„¤ì •ìš© ë°ì´í„° // xê°€ë¡œì—´(ì—´) yì„¸ë¡œì—´(í–‰)
 
-        int width_size = Mathf.Min(width, temp.GetLength(0)); // °¡·Î¿­
-        int height_size = Mathf.Min(height, temp.GetLength(1)); // ¼¼·ÎÇà
-
-        for (int y = 0; y < height_size ; y++)
+        /// <summary>
+        /// ìœ ë‹ˆí‹°ì—ì„œ ë‹¤ì°¨ì›ë°°ì—´ì´ Serializeê°€ ì•ˆë˜ì„œ boardMatrix => arrayLayout ë¡œ ë³€í™˜
+        /// </summary>
+        private void OnValidate()
         {
-            for (int x = 0; x < width_size; x++)
-                boardMatrix[x, y] = temp[x, y];
+            SetMatrixSize();
         }
 
-        arrayLayout = new ArrayLayout(width, height, boardMatrix);
+        public void SetMatrixSize()
+        {
+            bool[,] temp = (bool[,])boardMatrix.Clone();
+            boardMatrix = new bool[width, height];
+
+            int width_size = Mathf.Min(width, temp.GetLength(0)); // ê°€ë¡œì—´
+            int height_size = Mathf.Min(height, temp.GetLength(1)); // ì„¸ë¡œí–‰
+
+            for (int y = 0; y < height_size; y++)
+            {
+                for (int x = 0; x < width_size; x++)
+                    boardMatrix[x, y] = temp[x, y];
+            }
+
+            arrayLayout = new ArrayLayout(width, height, boardMatrix);
+        }
     }
 }

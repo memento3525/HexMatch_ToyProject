@@ -3,103 +3,106 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ButtonTweenAnim : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
+namespace Mentum
 {
-    public float shirinkScale = 0.9f;
-    public bool soundOff = false;
-
-    private const float toShirinkTime = 0.2f;
-    private const float toNormalTime = 0.1f;
-    private Vector3 shirinkVector;
-
-    private readonly Ease openEasy = Ease.OutBack;
-    private readonly Ease closeEasy = Ease.InBack;
-
-    private bool isSetup = false;
-    private Selectable selectable;
-
-    private Vector3 startScale = Vector3.one;
-    private Tweener tweener;
-
-    private void Awake()
+    public class ButtonTweenAnim : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
     {
-        InitialSetup();
-    }
+        public float shirinkScale = 0.9f;
+        public bool soundOff = false;
 
-    private void InitialSetup()
-    {
-        if (isSetup) return;
-        isSetup = true;
+        private const float toShirinkTime = 0.2f;
+        private const float toNormalTime = 0.1f;
+        private Vector3 shirinkVector;
 
-        shirinkVector = startScale * shirinkScale;
-        selectable = GetComponent<Selectable>();
-    }
+        private readonly Ease openEasy = Ease.OutBack;
+        private readonly Ease closeEasy = Ease.InBack;
 
-    private bool IsSelectable()
-    {
-        if (selectable == null)
-            return true;
-        else
-            return selectable.interactable;
-    }
+        private bool isSetup = false;
+        private Selectable selectable;
 
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        if (IsSelectable() == false)
-            return;
+        private Vector3 startScale = Vector3.one;
+        private Tweener tweener;
 
-        CallKill();
-        ToShrink();
-    }
+        private void Awake()
+        {
+            InitialSetup();
+        }
 
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        if (IsSelectable() == false)
-            return;
+        private void InitialSetup()
+        {
+            if (isSetup) return;
+            isSetup = true;
 
-        CallKill();
-        ToNormal();
-    }
+            shirinkVector = startScale * shirinkScale;
+            selectable = GetComponent<Selectable>();
+        }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (IsSelectable() == false)
-            return;
+        private bool IsSelectable()
+        {
+            if (selectable == null)
+                return true;
+            else
+                return selectable.interactable;
+        }
 
-        //if (soundOff == false)
-         //   SoundManager.Inst.PlayButtonSound();
-    }
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (IsSelectable() == false)
+                return;
 
-    public void ToShrink()
-    {
-        tweener = transform.DOScale(shirinkVector, toShirinkTime)
-            .SetEase(openEasy)
-            .SetUpdate(true);
-    }
+            CallKill();
+            ToShrink();
+        }
 
-    public void ToNormal()
-    {
-        tweener = transform.DOScale(startScale, toNormalTime)
-           .SetEase(closeEasy)
-           .SetUpdate(true);
-    }
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (IsSelectable() == false)
+                return;
 
-    public void CallKill()
-    {
-        if (tweener != null && tweener.IsActive())
-            tweener.Kill();
-    }
+            CallKill();
+            ToNormal();
+        }
 
-    private void OnEnable()
-    {
-        InitialSetup();
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (IsSelectable() == false)
+                return;
 
-        CallKill();
-        transform.localScale = startScale;
-    }
+            //if (soundOff == false)
+            //   SoundManager.Inst.PlayButtonSound();
+        }
 
-    private void OnDisable()
-    {
-        CallKill();
+        public void ToShrink()
+        {
+            tweener = transform.DOScale(shirinkVector, toShirinkTime)
+                .SetEase(openEasy)
+                .SetUpdate(true);
+        }
+
+        public void ToNormal()
+        {
+            tweener = transform.DOScale(startScale, toNormalTime)
+               .SetEase(closeEasy)
+               .SetUpdate(true);
+        }
+
+        public void CallKill()
+        {
+            if (tweener != null && tweener.IsActive())
+                tweener.Kill();
+        }
+
+        private void OnEnable()
+        {
+            InitialSetup();
+
+            CallKill();
+            transform.localScale = startScale;
+        }
+
+        private void OnDisable()
+        {
+            CallKill();
+        }
     }
 }

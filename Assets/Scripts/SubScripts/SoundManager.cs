@@ -2,93 +2,96 @@ using UnityEngine;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 
-public class SoundManager : MonoBehaviour
+namespace Mentum
 {
-    public static SoundManager Inst { get; private set; }
-
-    [Title("+[ 사운드 ]")]
-    [SerializeField] private AudioClip[] audioClip; // 오디오 소스들 지정.
-    private Dictionary<string, AudioClip> audioClipsDic;
-    public AudioClip backGroundMusic;
-
-    private float masterVolumeSFX = 1f;
-    private float masterVolumeBGM = 0.5f;
-
-    private AudioSource sfxPlayer;
-    private AudioSource bgmPlayer;
-
-    private readonly List<string> lastPlayedSound = new List<string>();
-
-    private void Awake()
+    public class SoundManager : MonoBehaviour
     {
-        Inst = this;
+        public static SoundManager Inst { get; private set; }
 
-        sfxPlayer = transform.GetChild(0).GetComponent<AudioSource>();
-        bgmPlayer = transform.GetChild(1).GetComponent<AudioSource>();
+        [Title("+[ 사운드 ]")]
+        [SerializeField] private AudioClip[] audioClip; // 오디오 소스들 지정.
+        private Dictionary<string, AudioClip> audioClipsDict;
+        [SerializeField] AudioClip backGroundMusic;
 
-        audioClipsDic = new Dictionary<string, AudioClip>();
+        private float masterVolumeSFX = 1f;
+        private float masterVolumeBGM = 0.5f;
 
-        foreach (AudioClip a in audioClip)
-            EnrollSound(a);
+        private AudioSource sfxPlayer;
+        private AudioSource bgmPlayer;
 
-        bgmPlayer.clip = backGroundMusic;
-        bgmPlayer.volume = masterVolumeBGM;
-        bgmPlayer.Play();
-    }
+        private readonly HashSet<string> lastPlayedSound = new();
 
-    public void EnrollSound(AudioClip a)
-    {
-        if (a == null)
-            return;
-
-        if (audioClipsDic.ContainsKey(a.name))
+        private void Awake()
         {
-            Debug.Log(a.name + "사운드가 중복");
-            return;
-        }
-        audioClipsDic.Add(a.name, a);
-    }
+            Inst = this;
 
-    private void Start()
-    {
-        if (bgmPlayer.clip != null && bgmPlayer.isPlaying == false)
+            sfxPlayer = transform.GetChild(0).GetComponent<AudioSource>();
+            bgmPlayer = transform.GetChild(1).GetComponent<AudioSource>();
+
+            audioClipsDict = new Dictionary<string, AudioClip>();
+
+            foreach (AudioClip a in audioClip)
+                EnrollSound(a);
+
+            bgmPlayer.clip = backGroundMusic;
+            bgmPlayer.volume = masterVolumeBGM;
             bgmPlayer.Play();
-    }
-
-    public void SetBGMAndPlay(AudioClip bgm)
-    {
-        bgmPlayer.clip = bgm;
-        bgmPlayer.Play();
-    }
-
-    private void LateUpdate()
-    {
-        if (lastPlayedSound.Count > 0)
-            lastPlayedSound.Clear();
-    }
-
-    public void PlayButtonSound()
-    {
-        PlaySound("click");
-    }
-
-    public void PlaySound(string soundName, float volume = 1f)
-    {
-        if (audioClipsDic.ContainsKey(soundName) == false)
-        {
-            Debug.Log(soundName + " is not Contained audioClipsDic");
-            return;
         }
 
-        if (lastPlayedSound.Contains(soundName))
+        public void EnrollSound(AudioClip a)
         {
-            if (soundName == "click")
-                Debug.Log(soundName + "이 한프레임에 두번 호출됨");
+            if (a == null)
+                return;
 
-            return;
+            if (audioClipsDict.ContainsKey(a.name))
+            {
+                Debug.Log(a.name + "사운드가 중복");
+                return;
+            }
+            audioClipsDict.Add(a.name, a);
         }
 
-        lastPlayedSound.Add(soundName);
-        sfxPlayer.PlayOneShot(audioClipsDic[soundName], volume * masterVolumeSFX);
+        private void Start()
+        {
+            if (bgmPlayer.clip != null && bgmPlayer.isPlaying == false)
+                bgmPlayer.Play();
+        }
+
+        public void SetBGMAndPlay(AudioClip bgm)
+        {
+            bgmPlayer.clip = bgm;
+            bgmPlayer.Play();
+        }
+
+        private void LateUpdate()
+        {
+            if (lastPlayedSound.Count > 0)
+                lastPlayedSound.Clear();
+        }
+
+        public void PlayButtonSound()
+        {
+            PlaySound("click");
+        }
+
+        public void PlaySound(string soundName, float volume = 1f)
+        {
+            if (!audioClipsDict.TryGetValue(soundName, out AudioClip value))
+            {
+                Debug.Log($"{soundName} 은 audioClipsDict에 포함되지 않음");
+                return;
+            }
+
+            if (lastPlayedSound.Contains(soundName))
+            {
+                if (soundName == "click")
+                    Debug.Log($"{soundName} 이 한프레임에 두번 호출됨");
+
+                return;
+            }
+
+            lastPlayedSound.Add(soundName);
+            sfxPlayer.PlayOneShot(value, volume * masterVolumeSFX);
+        }
     }
 }

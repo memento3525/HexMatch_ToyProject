@@ -59,6 +59,10 @@ sysinfo.txt
 crashlytics-build.properties
 
 /Assets/*
+
+/ProjectSettings/*
+/UserSettings/*
+
 *.meta
 !/Assets/Scripts/
 

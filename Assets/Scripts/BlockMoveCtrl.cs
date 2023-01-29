@@ -1,108 +1,109 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// ÇÃ·¹ÀÌ¾î Á¶ÀÛÀ» ÅëÇØ Á¶°¢À» ¿òÁ÷ÀÌ´Â ´ë¸®ÀÚ.
-/// </summary>
-public class BlockMoveCtrl : MonoBehaviour
+namespace Mentum.HexMatch
 {
-    public static BlockMoveCtrl Inst;
-    GameManager gameManager;
-
-    Block movingBlock;
-    Point newPoint;
-    Vector2 dragStart;
-
-    Canvas canvas;
-    float dragThreshold;
-
-    void Start()
-    {
-        gameManager = GetComponent<GameManager>();
-    }
-
-    public void InitialSetup(Canvas canvas)
-    {
-        Inst = this;
-        this.canvas = canvas;
-        dragThreshold = St.CELL * canvas.scaleFactor;
-    }
-
     /// <summary>
-    /// Æ÷Ä¿½º µÇ¾úÀ»¶§ ½ºÄÉÀÏÀÌ º¯ÇØÀÖÀ» ¼ö ÀÖ´Ù.
+    /// í”Œë ˆì´ì–´ ì¡°ì‘ì„ í†µí•´ ì¡°ê°ì„ ì›€ì§ì´ëŠ” ëŒ€ë¦¬ì.
     /// </summary>
-    private void OnApplicationFocus(bool focus)
+    public class BlockMoveCtrl : MonoBehaviour
     {
-        if (focus)
+        public static BlockMoveCtrl Inst;
+        private GameManager gameManager;
+
+        private Block movingBlock;
+        private Point newPoint;
+        private Vector2 dragStart;
+
+        private Canvas canvas;
+        private float dragThreshold;
+
+        private void Start()
         {
+            gameManager = GetComponent<GameManager>();
+        }
+
+        public void InitialSetup(Canvas canvas)
+        {
+            Inst = this;
+            this.canvas = canvas;
             dragThreshold = St.CELL * canvas.scaleFactor;
         }
-        else
+
+        /// <summary>
+        /// í¬ì»¤ìŠ¤ ë˜ì—ˆì„ë•Œ ìŠ¤ì¼€ì¼ì´ ë³€í•´ìˆì„ ìˆ˜ ìˆë‹¤.
+        /// </summary>
+        private void OnApplicationFocus(bool focus)
         {
-            if (movingBlock != null)
-                movingBlock.ResetPosition();
+            if (focus)
+            {
+                dragThreshold = St.CELL * canvas.scaleFactor;
+            }
+            else
+            {
+                if (movingBlock != null)
+                    movingBlock.ResetPosition();
+
+                movingBlock = null;
+                newPoint = null;
+            }
+        }
+
+        private void Update()
+        {
+            if (movingBlock == null)
+                return;
+
+            Vector2 dir = (Vector2)Input.mousePosition - dragStart;
+            Vector2 nDir = dir.normalized;
+
+            newPoint = new Point(movingBlock.point);
+            Point add = Point.Zero;
+            if (dir.magnitude > dragThreshold) // ì…€ì„ ë²—ì–´ë‚œê²½ìš°
+                add = AngleToDirPoint(nDir);
+
+            newPoint.Add(add);
+
+            Vector2 offset = Vector2.zero;
+
+            if (!newPoint.Equals(movingBlock.point))
+                offset = add.GetAnchorPosition() * 0.5f;
+
+            movingBlock.MoveOffsetTo(offset);
+        }
+
+        private Point AngleToDirPoint(Vector2 dirVector)
+        {
+            float angle = Mathf.Atan2(dirVector.y, dirVector.x) * Mathf.Rad2Deg + 180f;
+            if (angle > 300f) return Point.LeftUp;
+            else if (angle > 240f) return Point.Up;
+            else if (angle > 180f) return Point.RightUp;
+            else if (angle > 120f) return Point.RightDown;
+            else if (angle > 60f) return Point.Down;
+            else return Point.LeftDown;
+        }
+
+        public void MoveBlock(Block piece)
+        {
+            if (movingBlock != null) return;
+
+            movingBlock = piece;
+            dragStart = Input.mousePosition;
+        }
+
+        public void DropPiece()
+        {
+            if (newPoint == null || movingBlock == null) return;
+
+            if (!newPoint.Equals(movingBlock.point))
+            {
+                SoundManager.Inst.PlaySound("slide");
+                gameManager.FlipBlocks(movingBlock.point, newPoint, true);
+            }
+            else
+                gameManager.ResetBlockPosition(movingBlock);
 
             movingBlock = null;
             newPoint = null;
         }
-    }
-
-    void Update()
-    {
-        if (movingBlock == null) 
-            return;
-
-        Vector2 dir = (Vector2)Input.mousePosition - dragStart;
-        Vector2 nDir = dir.normalized;
-
-        newPoint = Point.Clone(movingBlock.point);
-        Point add = Point.Zero;
-        if(dir.magnitude > dragThreshold) // ¼¿À» ¹ş¾î³­°æ¿ì
-            add = AngleToDirPoint(nDir);
-
-        newPoint.Add(add);
-
-        Vector2 offset = Vector2.zero;
-
-        if (!newPoint.Equals(movingBlock.point))
-            offset = add.GetAnchorPosition() * 0.5f;
-
-        movingBlock.MoveOffsetTo(offset);
-    }
-
-    private Point AngleToDirPoint(Vector2 dirVector)
-    {
-        float angle = Mathf.Atan2(dirVector.y, dirVector.x) * Mathf.Rad2Deg + 180f;
-        if (angle > 300f) return Point.LeftUp;
-        else if (angle > 240f) return Point.Up;
-        else if (angle > 180f) return Point.RightUp;
-        else if (angle > 120f) return Point.RightDown;
-        else if (angle > 60f) return Point.Down;
-        else return Point.LeftDown;
-    }
-
-    public void MoveBlock(Block piece)
-    {
-        if (movingBlock != null) return;
-
-        movingBlock = piece;
-        dragStart = Input.mousePosition;
-    }
-
-    public void DropPiece()
-    {
-        if (newPoint == null || movingBlock == null) return;
-
-        if (!newPoint.Equals(movingBlock.point))
-        {
-            SoundManager.Inst.PlaySound("slide");
-            gameManager.FlipBlocks(movingBlock.point, newPoint, true);
-        }
-        else
-            gameManager.ResetBlockPosition(movingBlock);
-
-        movingBlock = null;
-        newPoint = null;
     }
 }

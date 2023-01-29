@@ -1,14 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class TargetFramerateSetter : MonoBehaviour
+namespace Mentum.Utility
 {
-	public int targetFramerate = 60;
-
-	private void Start()
+	public class TargetFramerateSetter : MonoBehaviour
 	{
-		QualitySettings.vSyncCount = 0; // OFF
-		Application.targetFrameRate = targetFramerate;
+		public int targetFramerate = 60;
+
+		private void Start()
+		{
+			QualitySettings.vSyncCount = 0; // OFF
+			Application.targetFrameRate = targetFramerate;
+		}
 	}
 }

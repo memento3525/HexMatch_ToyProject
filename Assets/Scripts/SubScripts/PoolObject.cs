@@ -1,31 +1,34 @@
 using System;
 using UnityEngine;
 
-/// <summary>
-/// 오브젝트 풀링에 쓰이는 생산되는 프리팹용 클래스 (컴포넌트)
-/// </summary>
-public class PoolObject : MonoBehaviour
+namespace Mentum
 {
-    public Action<PoolObject> OnDisableAction;
-
-    public void SpawnLocate(Vector2 spawnPos)
+    /// <summary>
+    /// 오브젝트 풀링에 쓰이는 생산되는 프리팹용 클래스 (컴포넌트)
+    /// </summary>
+    public class PoolObject : MonoBehaviour
     {
-        ((RectTransform)transform).anchoredPosition = spawnPos;
-    }
+        public Action<PoolObject> onDisableAction;
 
-    public void SpawnLocate(Vector3 spawnPos)
-    {
-        transform.position = spawnPos;
-    }
+        public void SpawnLocate(Vector2 spawnPos)
+        {
+            ((RectTransform)transform).anchoredPosition = spawnPos;
+        }
 
-    public void SpawnLocate(Vector3 spawnPos, Quaternion spawnRot)
-    {
-        transform.position = spawnPos;
-        transform.rotation = spawnRot;
-    }
+        public void SpawnLocate(Vector3 spawnPos)
+        {
+            transform.position = spawnPos;
+        }
 
-    private void OnDisable()
-    {
-        OnDisableAction?.Invoke(this);
+        public void SpawnLocate(Vector3 spawnPos, Quaternion spawnRot)
+        {
+            transform.position = spawnPos;
+            transform.rotation = spawnRot;
+        }
+
+        private void OnDisable()
+        {
+            onDisableAction?.Invoke(this);
+        }
     }
 }

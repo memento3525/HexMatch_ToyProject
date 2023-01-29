@@ -1,160 +1,161 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using DG.Tweening;
+using Mentum.Utility;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
-/// <summary>
-/// «¡∏Æ∆’ø° ¡˜¡¢ ∫Ÿ¿Ã¥¬ Ω∫≈©∏≥∆Æ
-/// </summary>
-public class Block : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+namespace Mentum.HexMatch
 {
-    [Header("UI Elements")]
-    public SpriteListSO blockSprites;
-
-    public Node.Type type;
-    public Point point;
-    public Vector2 targetPos;
-    public Vector2 targetOffset = Vector2.zero;
-
-    RectTransform rect;
-    RectTransform shakeTrans;
-    RectTransform childRect;
-
-    public bool onMove = false;
-    private bool onOffsetMove = false;
-
-    public bool isAlive = false;
-    Image img;
-
-    public Vector2 lastMoveDir;
-
-    private void Awake()
+    /// <summary>
+    /// ÌîÑÎ¶¨ÌåπÏóê ÏßÅÏ†ë Î∂ôÏù¥Îäî Ïä§ÌÅ¨Î¶ΩÌä∏
+    /// </summary>
+    public class Block : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        shakeTrans = transform.GetChild(0).GetComponent<RectTransform>();
+        [Header("UI Elements")]
+        public SpriteListSO blockSprites;
 
-        childRect = shakeTrans.GetChild(0).GetComponent<RectTransform>();
-        img = childRect.GetComponent<Image>();
-        rect = GetComponent<RectTransform>();
-    }
+        public Node.Type type;
+        public Point point;
+        private Vector2 targetPos;
+        private Vector2 targetOffset = Vector2.zero;
 
-    public void InitSetup(Node.Type type, Point p)
-    {
-        if (type == Node.Type.Blank || type == Node.Type.Hole)
+        private RectTransform rect;
+        private RectTransform shakeTrans;
+        private RectTransform childRect;
+
+        public bool onMove = false;
+        private bool onOffsetMove = false;
+
+        public bool isAlive = false;
+        private Image image;
+
+        public Vector2 lastMoveDir;
+
+        private void Awake()
         {
-            Debug.Log("∫Ûƒ≠");
+            shakeTrans = transform.GetChild(0).GetComponent<RectTransform>();
+            childRect = shakeTrans.GetChild(0).GetComponent<RectTransform>();
+            image = childRect.GetComponent<Image>();
+            rect = transform as RectTransform;
+        }
+
+        public void InitSetup(Node.Type type, Point p)
+        {
+            if (type == Node.Type.Blank || type == Node.Type.Hole)
+            {
+                Debug.Log("ÎπàÏπ∏");
+                gameObject.SetActive(false);
+                return;
+            }
+
+            isAlive = true;
+            this.type = type;
+            image.sprite = blockSprites[(int)type - 1];
+
+            SetPoint(p);
+        }
+
+        public void SetPoint(Point p)
+        {
+            point = p;
+            ResetPosition();
+            transform.name = $"Block ({point.x}, {point.y})";
+            gameObject.SetActive(true);
+        }
+
+        public void ResetPosition()
+        {
+            MovePositionTo(point.GetAnchorPosition());
+            MoveOffsetTo(Vector2.zero);
+        }
+
+        public void SetQuickPosition(Vector2 pos)
+        {
+            rect.anchoredPosition = pos;
+        }
+
+        public void MovePositionTo(Vector2 move)
+        {
+            targetPos = move;
+            onMove = true;
+
+        }
+
+        public void MoveOffsetTo(Vector2 move)
+        {
+            targetOffset = move;
+            onOffsetMove = true;
+        }
+
+        private void Update()
+        {
+            if (onMove)
+            {
+                rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, targetPos, Time.deltaTime * 20f);
+
+                if (Vector2.Distance(rect.anchoredPosition, targetPos) > 1f)
+                {
+                    lastMoveDir = (targetPos - rect.anchoredPosition).normalized * St.HALF_CELL * 0.15f;
+                }
+                else
+                {
+                    rect.anchoredPosition = targetPos;
+                    onMove = false;
+
+                    shakeTrans.DOPunchAnchorPos(lastMoveDir, 0.15f, 1, 0.7f);
+                }
+            }
+
+            if (onOffsetMove)
+            {
+                childRect.anchoredPosition = Vector2.Lerp(childRect.anchoredPosition, targetOffset, Time.deltaTime * 12f);
+                if (Vector2.Distance(childRect.anchoredPosition, targetOffset) < 2f)
+                {
+                    childRect.anchoredPosition = targetOffset;
+                    onOffsetMove = false;
+                }
+            }
+        }
+
+        #region Ï°∞ÏûëÍ≥Ñ
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            SoundManager.Inst.PlaySound("press");
+
+            if (onMove) return;
+            transform.SetAsLastSibling();
+            BlockMoveCtrl.Inst.MoveBlock(this);
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (onMove) return;
+            BlockMoveCtrl.Inst.DropPiece();
+        }
+        #endregion
+
+        public void Kill()
+        {
+            isAlive = false;
             gameObject.SetActive(false);
-            return;
         }
 
-        isAlive = true;
-        this.type = type;
-        img.sprite = blockSprites[(int)type - 1];
-
-        SetPoint(p);
-    }
-
-    public void SetPoint(Point p)
-    {
-        point = p;
-        ResetPosition();
-        transform.name = $"Block ({point.x}, {point.y})";
-        gameObject.SetActive(true);
-    }
-
-    public void ResetPosition()
-    {
-        MovePositionTo(point.GetAnchorPosition());
-        MoveOffsetTo(Vector2.zero);
-    }
-
-    public void SetQuickPosition(Vector2 pos)
-    {
-        rect.anchoredPosition = pos;
-    }
-
-    public void MovePositionTo(Vector2 move)
-    {
-        targetPos = move;
-        onMove = true;
-
-    }
-
-    public void MoveOffsetTo(Vector2 move)
-    {
-        targetOffset = move;
-        onOffsetMove = true;
-    }
-
-    private void Update()
-    {
-        if(onMove)
+        public void Revive()
         {
-            rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, targetPos, Time.deltaTime * 20f);
-
-            if (Vector2.Distance(rect.anchoredPosition, targetPos) > 1f)
-            {
-                lastMoveDir = (targetPos - rect.anchoredPosition).normalized * St.HALF_CELL * 0.15f;
-            }
-            else
-            {
-                rect.anchoredPosition = targetPos;
-                onMove = false;
-
-                shakeTrans.DOPunchAnchorPos(lastMoveDir, 0.15f, 1, 0.7f);
-            }
+            isAlive = true;
+            gameObject.SetActive(true);
         }
 
-        if(onOffsetMove)
+        public bool IsCanKilledBlock()
         {
-            childRect.anchoredPosition = Vector2.Lerp(childRect.anchoredPosition, targetOffset, Time.deltaTime * 12f);
-            if (Vector2.Distance(childRect.anchoredPosition, targetOffset) < 2f)
-            {
-                childRect.anchoredPosition = targetOffset;
-                onOffsetMove = false;
-            }
+            return Node.IsColorBlock(type);
         }
-    }
 
-    #region ¡∂¿€∞Ë
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        SoundManager.Inst.PlaySound("press");
-
-        if (onMove) return;
-        transform.SetAsLastSibling();
-        BlockMoveCtrl.Inst.MoveBlock(this);
-    }
-
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        if (onMove) return;
-        BlockMoveCtrl.Inst.DropPiece();
-    }
-    #endregion
-
-    public void Kill()
-    {
-        isAlive = false;
-        gameObject.SetActive(false);
-    }
-
-    public void Revive()
-    {
-        isAlive = true;
-        gameObject.SetActive(true);
-    }
-
-    public bool IsCanKilledBlock()
-    {
-        return Node.IsColorBlock(type);
-    }
-
-    private void OnDisable()
-    {
-        shakeTrans.DOKill();
-        shakeTrans.anchoredPosition = Vector2.zero; 
-        childRect.anchoredPosition = Vector2.zero;
+        private void OnDisable()
+        {
+            shakeTrans.DOKill();
+            shakeTrans.anchoredPosition = Vector2.zero;
+            childRect.anchoredPosition = Vector2.zero;
+        }
     }
 }

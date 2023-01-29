@@ -3,71 +3,74 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// ÁÂÇ¥°èÀÌ´Ù. ½½·ÔÀÇ ±â´ÉÀ» ÇÔ.
-/// </summary>
-[System.Serializable]
-public class Node
+namespace Mentum.HexMatch
 {
-    public static int colorLength = Enum.GetNames(typeof(Type)).Length - 2;
-
-    public enum Type
-    {
-        Hole = -1, // ºñ¾îÀÖ¾î¼­, Àı´ë Ã¤¿öÁöÁö¾Ê´Â °ø°£
-        Blank = 0, // ÀÓ½Ã·Î ºñ¿öÁ®¼­ ºí·°ÀÌ Ã¤¿öÁ®¾ßÇÏ´Â °ø°£
-        Red = 1,
-        Green = 2,
-        Blue = 3,
-        Purple = 4,
-        Yellow = 5,
-        White = 6,
-    }
-
-    public Type type;
-    public Point point;
-    private Block block;
-
-    public Node(Type t, Point p)
-    {
-        type = t;
-        point = p;
-    }
-
-    public void SetBlock(Block b)
-    {
-        block = b;
-        type = (block == null) ? Type.Blank : block.type;
-        if (block == null) return;
-
-        block.SetPoint(point);
-    }
-
-    public void SetType(Type t)
-    {
-        type = t;
-    }
-
-    public Block GetBlock() => block;
-
     /// <summary>
-    /// ÄÃ·¯ ºí·ÏÀÎÁö Ã¼Å©. ÁÖ·Î ¿¬°á°Ë»ç¸¦ ÇØ¾ßµÇ´ÂÁö Ã¼Å©ÇÒ¶§ »ç¿ë.
+    /// ì¢Œí‘œê³„ì´ë‹¤. ìŠ¬ë¡¯ì˜ ê¸°ëŠ¥ì„ í•¨.
     /// </summary>
-    public static bool IsColorBlock(Type type)
+    [System.Serializable]
+    public class Node
     {
-        return type != Type.Hole && type != Type.Blank;
-    }
+        public static int colorLength = Enum.GetNames(typeof(Type)).Length - 2;
 
-    public bool IsColorBlock()
-    {
-        return type != Type.Hole && type != Type.Blank;
-    }
+        public enum Type
+        {
+            Hole = -1, // ë¹„ì–´ìˆì–´ì„œ, ì ˆëŒ€ ì±„ì›Œì§€ì§€ì•ŠëŠ” ê³µê°„
+            Blank = 0, // ì„ì‹œë¡œ ë¹„ì›Œì ¸ì„œ ë¸”ëŸ­ì´ ì±„ì›Œì ¸ì•¼í•˜ëŠ” ê³µê°„
+            Red = 1,
+            Green = 2,
+            Blue = 3,
+            Purple = 4,
+            Yellow = 5,
+            White = 6,
+        }
 
-    /// <summary>
-    /// ÄÃ·¯ºí·ÏÀÇ Å¸ÀÔ¸¸À» ¸®ÅÏÇÑ´Ù.
-    /// </summary>
-    public static Type GetRandomColorType()
-    {
-        int newType = UnityEngine.Random.Range(0, colorLength) + 1;
-        return (Type)newType;
+        public Type type;
+        public Point point;
+        private Block block;
+
+        public Node(Type t, Point p)
+        {
+            type = t;
+            point = p;
+        }
+
+        public void SetBlock(Block b)
+        {
+            block = b;
+            type = (block == null) ? Type.Blank : block.type;
+            if (block == null) return;
+
+            block.SetPoint(point);
+        }
+
+        public void SetType(Type t)
+        {
+            type = t;
+        }
+
+        public Block GetBlock() => block;
+
+        /// <summary>
+        /// ì»¬ëŸ¬ ë¸”ë¡ì¸ì§€ ì²´í¬. ì£¼ë¡œ ì—°ê²°ê²€ì‚¬ë¥¼ í•´ì•¼ë˜ëŠ”ì§€ ì²´í¬í• ë•Œ ì‚¬ìš©.
+        /// </summary>
+        public static bool IsColorBlock(Type type)
+        {
+            return type != Type.Hole && type != Type.Blank;
+        }
+
+        public bool IsColorBlock()
+        {
+            return type != Type.Hole && type != Type.Blank;
+        }
+
+        /// <summary>
+        /// ì»¬ëŸ¬ë¸”ë¡ì˜ íƒ€ì…ë§Œì„ ë¦¬í„´í•œë‹¤.
+        /// </summary>
+        public static Type GetRandomColorType()
+        {
+            int newType = UnityEngine.Random.Range(0, colorLength) + 1;
+            return (Type)newType;
+        }
     }
 }

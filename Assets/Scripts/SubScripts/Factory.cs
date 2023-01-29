@@ -2,78 +2,81 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// 오브젝트 풀링에 쓰이는 생산자 클래스
-/// </summary>
-public class Factory
+namespace Mentum
 {
-    private readonly PoolObject prefab;
-    private readonly Transform spawnParent;
-    private readonly int defaultPoolSize;
-
-    private Queue<PoolObject> pool;
-    public List<PoolObject> SpawnedPool { get; set; }
-
-    public Factory(PoolObject prefab, Transform spawnParent, int defaultPoolSize)
+    /// <summary>
+    /// 오브젝트 풀링에 쓰이는 생산자 클래스
+    /// </summary>
+    public class Factory
     {
-        this.prefab = prefab;
-        this.spawnParent = spawnParent;
-        this.defaultPoolSize = defaultPoolSize;
+        private readonly PoolObject prefab;
+        private readonly Transform spawnParent;
+        private readonly int defaultPoolSize;
 
-        if (this.prefab != null)
-            CreatePool();
-        else
-            Debug.LogAssertion("Prefab이 null 값임");
-    }
+        private Queue<PoolObject> pool;
+        public List<PoolObject> SpawnedPool { get; set; }
 
-    private void CreatePool()
-    {
-        pool = new Queue<PoolObject>(defaultPoolSize);
-        SpawnedPool = new List<PoolObject>();
+        public Factory(PoolObject prefab, Transform spawnParent, int defaultPoolSize)
+        {
+            this.prefab = prefab;
+            this.spawnParent = spawnParent;
+            this.defaultPoolSize = defaultPoolSize;
 
-        for (int i = 0; i < defaultPoolSize; i++)
-            AddOne();
-    }
+            if (this.prefab != null)
+                CreatePool();
+            else
+                Debug.LogAssertion("Prefab이 null 값임");
+        }
 
-    private void AddOne()
-    {
-        PoolObject newOne = Object.Instantiate(prefab, spawnParent);
-        newOne.gameObject.SetActive(false);
-        pool.Enqueue(newOne);
-    }
+        private void CreatePool()
+        {
+            pool = new Queue<PoolObject>(defaultPoolSize);
+            SpawnedPool = new List<PoolObject>();
 
-    private PoolObject Get()
-    {
-        if (pool.Count == 0)
-            AddOne();
+            for (int i = 0; i < defaultPoolSize; i++)
+                AddOne();
+        }
 
-        PoolObject obj = pool.Dequeue();
-        SpawnedPool.Add(obj);
+        private void AddOne()
+        {
+            PoolObject newOne = Object.Instantiate(prefab, spawnParent);
+            newOne.gameObject.SetActive(false);
+            pool.Enqueue(newOne);
+        }
 
-        return obj;
-    }
+        private PoolObject Get()
+        {
+            if (pool.Count == 0)
+                AddOne();
 
-    // 풀 되돌리기
-    public void Insert(PoolObject obj)
-    {
-        // Assert는 첫번째 항이 거짓일 때 출력함에 주의
-        Debug.Assert(obj != null, "Null object가 반환됨");
+            PoolObject obj = pool.Dequeue();
+            SpawnedPool.Add(obj);
 
-        obj.OnDisableAction -= Insert;
-        obj.gameObject.SetActive(false);
+            return obj;
+        }
 
-        SpawnedPool.Remove(obj);
-        pool.Enqueue(obj);
-    }
+        // 풀 되돌리기
+        public void Insert(PoolObject obj)
+        {
+            // Assert는 첫번째 항이 거짓일 때 출력함에 주의
+            Debug.Assert(obj != null, "Null object가 반환됨");
 
-    public PoolObject Spawn(Vector2 position)
-    {
-        PoolObject curObj = Get();
-        curObj.gameObject.SetActive(false);
-        curObj.SpawnLocate(position);
-        curObj.OnDisableAction += Insert;
-        curObj.gameObject.SetActive(true);
+            obj.onDisableAction -= Insert;
+            obj.gameObject.SetActive(false);
 
-        return curObj;
+            SpawnedPool.Remove(obj);
+            pool.Enqueue(obj);
+        }
+
+        public PoolObject Spawn(Vector2 position)
+        {
+            PoolObject curObj = Get();
+            curObj.gameObject.SetActive(false);
+            curObj.SpawnLocate(position);
+            curObj.onDisableAction += Insert;
+            curObj.gameObject.SetActive(true);
+
+            return curObj;
+        }
     }
 }
